@@ -1,3 +1,5 @@
+<img src="build/icon-512.png" alt="" width="88" align="left" hspace="14" vspace="4" />
+
 # Cue
 
 Pick a video, get a broadcast-quality `.srt`. Everything runs on your own machine —
@@ -225,7 +227,8 @@ electron/
     subtitles.js     SRT / VTT / TXT
     pipeline.js      the staged job that ties it together
 renderer/            UI — plain HTML/CSS/JS, no bundler
-tools/               doctor.js · install.js · run.js · selftest.js
+tools/               doctor.js · install.js · run.js · selftest.js · make-icon.js
+build/               app icon (regenerate with `npm run icon`)
 test/core.test.js    unit tests
 ```
 

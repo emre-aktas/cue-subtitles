@@ -26,6 +26,15 @@ const VIDEO_EXTENSIONS = [
 ];
 const AUDIO_EXTENSIONS = ['mp3', 'wav', 'm4a', 'aac', 'flac', 'ogg', 'opus', 'wma'];
 
+// Windows picks the best size out of a multi-resolution .ico; everywhere else wants a
+// plain PNG. Regenerate both with `npm run icon`.
+const APP_ICON = path.join(
+  __dirname,
+  '..',
+  'build',
+  process.platform === 'win32' ? 'icon.ico' : 'icon.png'
+);
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1320,
@@ -35,6 +44,7 @@ function createWindow() {
     backgroundColor: '#0b0b0d',
     show: false,
     title: 'Cue',
+    icon: APP_ICON,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
