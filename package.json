@@ -1,0 +1,50 @@
+{
+  "name": "cue-subtitles",
+  "productName": "Cue",
+  "version": "1.0.0",
+  "description": "Local, GPU-accelerated video to SRT subtitle generator built on whisper.cpp and ffmpeg",
+  "main": "electron/main.js",
+  "license": "MIT",
+  "private": true,
+  "keywords": [
+    "subtitles",
+    "srt",
+    "webvtt",
+    "whisper",
+    "whisper.cpp",
+    "transcription",
+    "speech-to-text",
+    "electron",
+    "offline",
+    "ffmpeg"
+  ],
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "test": "node --test test/core.test.js",
+    "doctor": "node tools/doctor.js",
+    "setup": "node tools/install.js",
+    "cli": "node tools/run.js",
+    "selftest": "node tools/selftest.js",
+    "dist": "electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "^40.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "io.github.cue.subtitles",
+    "productName": "Cue",
+    "files": [
+      "electron/**/*",
+      "renderer/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis"
+    }
+  },
+  "allowScripts": {
+    "electron@40.10.6": true
+  }
+}

@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' file:;"
+    />
+    <title>Cue</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <!-- ══════════════════ SIDEBAR ══════════════════ -->
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round">
+              <path d="M4 8.5h9" />
+              <path d="M16.5 8.5h3.5" />
+              <path d="M4 15.5h3.5" />
+              <path d="M11 15.5h9" />
+            </svg>
+          </span>
+          <div class="brand-text">
+            <strong>Cue</strong>
+            <span>Local subtitles</span>
+          </div>
+        </div>
+
+        <nav class="sidenav" role="tablist" aria-label="Sections">
+          <button class="navitem is-active" data-tab="transcribe" role="tab" aria-selected="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m10 8 6 4-6 4V8z" />
+              <rect x="2" y="4" width="20" height="16" rx="2" />
+            </svg>
+            <span>Transcribe</span>
+          </button>
+          <button class="navitem" data-tab="setup" role="tab" aria-selected="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 3v3" />
+              <path d="M12 18v3" />
+              <path d="M5.6 5.6l2.1 2.1" />
+              <path d="M16.3 16.3l2.1 2.1" />
+              <path d="M3 12h3" />
+              <path d="M18 12h3" />
+              <path d="M5.6 18.4l2.1-2.1" />
+              <path d="M16.3 7.7l2.1-2.1" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+            <span>Setup</span>
+            <span class="navbadge hidden" id="setupBadge">0</span>
+          </button>
+          <button class="navitem" data-tab="settings" role="tab" aria-selected="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 6h16" />
+              <path d="M4 12h16" />
+              <path d="M4 18h16" />
+              <circle cx="9" cy="6" r="2" fill="currentColor" stroke="none" />
+              <circle cx="15" cy="12" r="2" fill="currentColor" stroke="none" />
+              <circle cx="8" cy="18" r="2" fill="currentColor" stroke="none" />
+            </svg>
+            <span>Settings</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-foot">
+          <div class="statlist" id="sysStats"></div>
+        </div>
+      </aside>
+
+      <!-- ══════════════════ CONTENT ══════════════════ -->
+      <main class="content">
+        <!-- ─────────── TRANSCRIBE ─────────── -->
+        <section class="page is-active" id="page-transcribe" role="tabpanel" aria-label="Transcribe">
+          <header class="pagehead">
+            <div>
+              <h1>Transcribe</h1>
+              <p>Choose a video and Cue writes a subtitle file beside it. Nothing is uploaded.</p>
+            </div>
+          </header>
+
+          <div class="callout callout-warn hidden" id="setupCallout">
+            <span class="callout-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M12 8v5" /><path d="M12 16.5v.5" /><circle cx="12" cy="12" r="9" />
+              </svg>
+            </span>
+            <div class="callout-body">
+              <strong id="setupCalloutTitle">Setup needed</strong>
+              <span id="setupCalloutText"></span>
+            </div>
+            <button class="btn btn-primary btn-sm" data-goto="setup">Go to setup</button>
+          </div>
+
+          <button class="dropzone" id="dropzone" type="button">
+            <span class="dz-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 15V3" /><path d="m7 8 5-5 5 5" />
+                <path d="M20 15v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-4" />
+              </svg>
+            </span>
+            <span class="dz-title">Drop a video here</span>
+            <span class="dz-sub">or click to browse</span>
+            <span class="dz-formats">mp4 · mkv · mov · avi · webm · mp3 · wav · m4a · flac</span>
+          </button>
+
+          <div class="filecard hidden" id="fileCard">
+            <span class="fc-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m10 8 6 4-6 4V8z" /><rect x="2" y="4" width="20" height="16" rx="2" />
+              </svg>
+            </span>
+            <div class="filecard-main">
+              <div class="fc-title" id="fcName">—</div>
+              <div class="fc-meta" id="fcMeta"></div>
+            </div>
+            <div class="filecard-actions">
+              <label class="field field-inline hidden" id="audioTrackField">
+                <span>Audio track</span>
+                <select id="audioTrack"></select>
+              </label>
+              <button class="btn btn-ghost btn-sm" id="changeFile">Change</button>
+            </div>
+          </div>
+
+          <div class="card cardpad" id="optionsCard">
+            <div class="card-title-row">
+              <h2>Options</h2>
+              <span class="muted" id="estimateHint"></span>
+            </div>
+            <div class="controls">
+              <label class="field">
+                <span>Model</span>
+                <select id="qModel"></select>
+              </label>
+              <label class="field">
+                <span>Language</span>
+                <select id="qLanguage"></select>
+              </label>
+              <label class="field">
+                <span>Quality profile</span>
+                <select id="qPreset">
+                  <option value="accuracy">Highest accuracy — slower</option>
+                  <option value="balanced">Balanced — recommended</option>
+                  <option value="speed">Fastest — rough draft</option>
+                  <option value="custom">Custom — see Settings</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Output format</span>
+                <select id="qFormat">
+                  <option value="srt">SubRip (.srt)</option>
+                  <option value="vtt">WebVTT (.vtt)</option>
+                  <option value="txt">Plain text (.txt)</option>
+                </select>
+              </label>
+            </div>
+            <div class="run-row">
+              <button class="btn btn-primary btn-lg" id="runBtn" disabled>Generate subtitles</button>
+              <button class="btn btn-danger hidden" id="cancelBtn">Cancel</button>
+              <span class="run-hint" id="runHint"></span>
+            </div>
+          </div>
+
+          <!-- progress -->
+          <div class="card cardpad hidden" id="progressPanel">
+            <div class="progress-top">
+              <div class="progress-ring" aria-hidden="true">
+                <svg viewBox="0 0 44 44">
+                  <circle class="ring-track" cx="22" cy="22" r="19" />
+                  <circle class="ring-value" cx="22" cy="22" r="19" id="ringValue" />
+                </svg>
+                <span id="progressNum">0%</span>
+              </div>
+              <div class="progress-copy">
+                <div class="stage-label" id="stageLabel">Preparing…</div>
+                <div class="stage-sub" id="stageSub"></div>
+              </div>
+              <div class="progress-side" id="progressSide"></div>
+            </div>
+
+            <ol class="stepper" id="stepper">
+              <li data-stage="probe"><span class="step-dot"></span><span class="step-name">Inspect</span></li>
+              <li data-stage="extract"><span class="step-dot"></span><span class="step-name">Extract audio</span></li>
+              <li data-stage="detect"><span class="step-dot"></span><span class="step-name">Detect language</span></li>
+              <li data-stage="transcribe"><span class="step-dot"></span><span class="step-name">Transcribe</span></li>
+              <li data-stage="post"><span class="step-dot"></span><span class="step-name">Build cues</span></li>
+              <li data-stage="write"><span class="step-dot"></span><span class="step-name">Write file</span></li>
+            </ol>
+
+            <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="progressBar">
+              <div class="bar-fill" id="barFill"></div>
+            </div>
+
+            <div class="feedwrap">
+              <div class="feedhead">
+                <span>Live transcript</span>
+                <button class="btn btn-ghost btn-xs" id="toggleLog">Show engine log</button>
+              </div>
+              <div class="livefeed" id="liveFeed">
+                <div class="feed-empty">Lines appear here as the model produces them.</div>
+              </div>
+              <pre class="log hidden" id="logBox"></pre>
+            </div>
+          </div>
+
+          <!-- result -->
+          <div class="card cardpad hidden" id="resultPanel">
+            <div class="result-head">
+              <div class="result-headline">
+                <span class="result-check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m5 13 4 4L19 7" />
+                  </svg>
+                </span>
+                <div>
+                  <div class="result-title" id="resultTitle">Subtitles ready</div>
+                  <div class="result-path" id="resultPath"></div>
+                </div>
+              </div>
+              <div class="result-actions">
+                <button class="btn btn-ghost btn-sm" id="copyBtn">Copy</button>
+                <button class="btn btn-ghost btn-sm" id="saveAsBtn">Save as…</button>
+                <button class="btn btn-sm" id="revealBtn">Show in folder</button>
+                <button class="btn btn-primary btn-sm" id="applyEditsBtn">Save edits</button>
+              </div>
+            </div>
+
+            <div class="tiles" id="resultTiles"></div>
+            <div class="cleanup-note hidden" id="cleanupNote"></div>
+
+            <div class="editor">
+              <div class="preview-col">
+                <video id="videoPreview" controls preload="metadata"></video>
+                <div class="cue-overlay" id="cueOverlay"><span class="overlay-hint">Play to preview cues</span></div>
+              </div>
+              <div class="cues-col">
+                <div class="cues-toolbar">
+                  <input type="search" id="cueSearch" placeholder="Search cues…" aria-label="Search cues" />
+                  <label class="chk chk-inline">
+                    <input type="checkbox" id="onlyWarnings" />
+                    <span>Warnings only</span>
+                  </label>
+                </div>
+                <div class="cuelist" id="cueList"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ─────────── SETUP ─────────── -->
+        <section class="page" id="page-setup" role="tabpanel" aria-label="Setup">
+          <header class="pagehead">
+            <div>
+              <h1>Setup</h1>
+              <p>
+                Cue needs a decoder, a transcription engine and a speech model. Everything installs
+                into this project folder and runs offline afterwards.
+              </p>
+            </div>
+          </header>
+
+          <div class="card reqcard" id="reqCard">
+            <div class="reqcard-head">
+              <div>
+                <h2 id="reqTitle">Checking…</h2>
+                <p class="muted" id="reqSummary"></p>
+              </div>
+              <button class="btn btn-primary hidden" id="installAllBtn">Install everything</button>
+            </div>
+            <ul class="reqlist" id="reqList"></ul>
+          </div>
+
+          <details class="advanced" id="advancedSetup">
+            <summary>
+              <span>Advanced — pick a specific engine or model</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </summary>
+
+            <div class="section-head">
+              <h3>Engine</h3>
+              <p>Prebuilt whisper.cpp <span id="whisperVer">—</span> packages.</p>
+            </div>
+            <div class="cardgrid" id="engineList"></div>
+
+            <div class="section-head">
+              <h3>Voice activity detection</h3>
+              <p>Silero VAD hides silent stretches from the model — 0.8 MB.</p>
+            </div>
+            <div class="cardgrid" id="vadCard"></div>
+
+            <div class="section-head">
+              <h3>Models</h3>
+              <p>
+                Stored in <code id="modelDirPath">models/</code>.
+                <span id="diskInfo" class="disk-info"></span>
+              </p>
+            </div>
+            <div class="cardgrid" id="modelList"></div>
+          </details>
+        </section>
+
+        <!-- ─────────── SETTINGS ─────────── -->
+        <section class="page" id="page-settings" role="tabpanel" aria-label="Settings">
+          <header class="pagehead">
+            <div>
+              <h1>Settings</h1>
+              <p>Defaults are tuned for accuracy. Every change saves immediately.</p>
+            </div>
+            <div class="pagehead-actions">
+              <span id="settingsSaved" class="saved-hint" role="status"></span>
+              <button class="btn btn-ghost btn-sm" id="resetSettings">Restore defaults</button>
+            </div>
+          </header>
+
+          <div class="settings-grid">
+            <section class="card cardpad">
+              <div class="setting-group-head">
+                <h2>Decoding</h2>
+                <p>How hard the model works on each segment.</p>
+              </div>
+              <label class="field">
+                <span>Threads</span>
+                <input type="number" id="sThreads" min="1" max="64" />
+              </label>
+              <label class="chk">
+                <input type="checkbox" id="sUseGpu" />
+                <span>Use GPU</span>
+              </label>
+              <label class="chk">
+                <input type="checkbox" id="sFlashAttn" />
+                <span>Flash attention <small>— faster on GPU</small></span>
+              </label>
+              <label class="field">
+                <span>Beam size <small>higher is more accurate, slower</small></span>
+                <input type="number" id="sBeamSize" min="1" max="8" />
+              </label>
+              <label class="field">
+                <span>Best of</span>
+                <input type="number" id="sBestOf" min="1" max="8" />
+              </label>
+              <label class="field">
+                <span>Context carry-over</span>
+                <select id="sContextMode">
+                  <option value="off">Off — lowest risk of repetition loops</option>
+                  <option value="balanced">Balanced (64 tokens) — recommended</option>
+                  <option value="full">Full — most fluent, loops possible</option>
+                </select>
+              </label>
+              <label class="chk">
+                <input type="checkbox" id="sSuppressNst" />
+                <span>Hide non-speech tags <small>— [music], (laughter)…</small></span>
+              </label>
+              <label class="chk">
+                <input type="checkbox" id="sDtw" />
+                <span>DTW word timing <small>— turns flash attention off, slower</small></span>
+              </label>
+              <label class="chk">
+                <input type="checkbox" id="sTranslate" />
+                <span>Translate to English</span>
+              </label>
+              <label class="chk">
+                <input type="checkbox" id="sDetectSampling" />
+                <span>Detect language by sampling three points</span>
+              </label>
+              <label class="field">
+                <span>Custom vocabulary <small>names, brands, jargon — comma separated</small></span>
+                <textarea id="sPrompt" rows="3" placeholder="Kubernetes, Anthropic, Ada Lovelace…"></textarea>
+              </label>
+            </section>
+
+            <section class="card cardpad">
+              <div class="setting-group-head">
+                <h2>Voice activity detection</h2>
+                <p>The most effective guard against invented lines.</p>
+              </div>
+              <label class="chk">
+                <input type="checkbox" id="sVad" />
+                <span>Enable VAD</span>
+              </label>
+              <label class="field">
+                <span>Threshold <small>lower catches quieter speech</small></span>
+                <input type="number" id="sVadThreshold" step="0.05" min="0.1" max="0.9" />
+              </label>
+              <label class="field">
+                <span>Minimum speech (ms)</span>
+                <input type="number" id="sVadMinSpeech" min="0" max="2000" step="10" />
+              </label>
+              <label class="field">
+                <span>Minimum silence (ms)</span>
+                <input type="number" id="sVadMinSilence" min="0" max="2000" step="10" />
+              </label>
+              <label class="field">
+                <span>Speech padding (ms)</span>
+                <input type="number" id="sVadPad" min="0" max="500" step="10" />
+              </label>
+
+              <div class="setting-group-head spaced">
+                <h2>Audio preprocessing</h2>
+                <p>Applied before the model sees the waveform.</p>
+              </div>
+              <label class="chk">
+                <input type="checkbox" id="sHighpass" />
+                <span>Cut rumble below 60 Hz</span>
+              </label>
+              <label class="chk">
+                <input type="checkbox" id="sLoudnorm" />
+                <span>Even out loudness</span>
+              </label>
+              <label class="chk">
+                <input type="checkbox" id="sDenoise" />
+                <span>Noise reduction <small>— can smear speech, use with care</small></span>
+              </label>
+            </section>
+
+            <section class="card cardpad">
+              <div class="setting-group-head">
+                <h2>Subtitle formatting</h2>
+                <p>Broadcast conventions. Lower the reading speed for dense material.</p>
+              </div>
+              <div class="field-pair">
+                <label class="field">
+                  <span>Characters per line</span>
+                  <input type="number" id="sMaxChars" min="20" max="90" />
+                </label>
+                <label class="field">
+                  <span>Maximum lines</span>
+                  <input type="number" id="sMaxLines" min="1" max="3" />
+                </label>
+              </div>
+              <label class="field">
+                <span>Reading speed <small>characters per second</small></span>
+                <input type="number" id="sMaxCps" min="8" max="30" />
+              </label>
+              <div class="field-pair">
+                <label class="field">
+                  <span>Min duration (ms)</span>
+                  <input type="number" id="sMinDur" min="200" max="3000" step="50" />
+                </label>
+                <label class="field">
+                  <span>Max duration (ms)</span>
+                  <input type="number" id="sMaxDur" min="2000" max="12000" step="100" />
+                </label>
+              </div>
+              <div class="field-pair">
+                <label class="field">
+                  <span>Gap between cues (ms)</span>
+                  <input type="number" id="sMinGap" min="0" max="500" step="4" />
+                </label>
+                <label class="field">
+                  <span>New-cue pause (ms)</span>
+                  <input type="number" id="sSentencePause" min="200" max="2000" step="50" />
+                </label>
+              </div>
+              <label class="chk">
+                <input type="checkbox" id="sMergeShort" />
+                <span>Merge one-word cues into their neighbour</span>
+              </label>
+              <label class="chk">
+                <input type="checkbox" id="sDropLowConf" />
+                <span>Drop low-confidence cues</span>
+              </label>
+            </section>
+
+            <section class="card cardpad">
+              <div class="setting-group-head">
+                <h2>Output &amp; tools</h2>
+                <p>Where files land and which binaries to use.</p>
+              </div>
+              <label class="field">
+                <span>Destination folder <small>empty = next to the video</small></span>
+                <div class="row">
+                  <input type="text" id="sOutputDir" placeholder="next to the video" />
+                  <button class="btn btn-sm" id="pickOutputDir">Choose</button>
+                  <button class="btn btn-sm btn-ghost" id="clearOutputDir">Clear</button>
+                </div>
+              </label>
+              <label class="chk">
+                <input type="checkbox" id="sLangSuffix" />
+                <span>Add language suffix to filename <small>— video.en.srt</small></span>
+              </label>
+              <label class="chk">
+                <input type="checkbox" id="sUtf8Bom" />
+                <span>Write UTF-8 BOM <small>— for legacy players that garble accents</small></span>
+              </label>
+              <label class="field">
+                <span>ffmpeg path <small>empty = auto</small></span>
+                <input type="text" id="sFfmpegPath" placeholder="auto" />
+              </label>
+              <label class="field">
+                <span>ffprobe path</span>
+                <input type="text" id="sFfprobePath" placeholder="auto" />
+              </label>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast-wrap" id="toastWrap" role="region" aria-label="Notifications"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
