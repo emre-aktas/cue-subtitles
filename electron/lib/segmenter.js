@@ -540,4 +540,5 @@ module.exports = {
   looksHallucinated,
   dropRepetitionLoops,
   collapseTimePileups,
+  mergeTinyCues,
 };

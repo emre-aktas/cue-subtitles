@@ -10,6 +10,7 @@ const api = {
   getAppInfo: () => ipcRenderer.invoke('app:info'),
   recommendVariant: () => ipcRenderer.invoke('app:recommendVariant'),
   checkRequirements: () => ipcRenderer.invoke('app:requirements'),
+  getPendingOpen: () => ipcRenderer.invoke('app:pendingOpen'),
   installMissing: (token) => ipcRenderer.invoke('app:installMissing', { token }),
   installFfmpeg: (token) => ipcRenderer.invoke('tools:installFfmpeg', { token }),
   getSettings: () => ipcRenderer.invoke('settings:get'),
@@ -66,6 +67,11 @@ const api = {
     const listener = (_e, payload) => cb(payload);
     ipcRenderer.on('download:progress', listener);
     return () => ipcRenderer.removeListener('download:progress', listener);
+  },
+  onOpenFile: (cb) => {
+    const listener = (_e, filePath) => cb(filePath);
+    ipcRenderer.on('app:openFile', listener);
+    return () => ipcRenderer.removeListener('app:openFile', listener);
   },
   onSetupItem: (cb) => {
     const listener = (_e, payload) => cb(payload);

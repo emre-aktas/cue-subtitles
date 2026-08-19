@@ -15,7 +15,17 @@ const { createJob } = require('./lib/pipeline');
 
 const IS_DEV = process.argv.includes('--dev');
 
+/** `--open <path>` preloads a file, so the app can be launched at a video directly. */
+function fileFromArgv(argv) {
+  const i = argv.indexOf('--open');
+  if (i === -1 || !argv[i + 1]) return null;
+  const target = path.resolve(argv[i + 1]);
+  return fs.existsSync(target) ? target : null;
+}
+
 let mainWindow = null;
+/** Path handed in with `--open`, held until the renderer asks for it. */
+let pendingOpen = null;
 /** @type {Map<string, {cancel:Function}>} */
 const jobs = new Map();
 /** @type {Map<string, AbortController>} */
@@ -56,6 +66,11 @@ function createWindow() {
   Menu.setApplicationMenu(null);
   mainWindow.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
   mainWindow.once('ready-to-show', () => mainWindow.show());
+
+  // Don't push the path at did-finish-load: the renderer registers its listener only
+  // after several awaits in boot(), so the message would arrive first and be lost.
+  // It pulls the pending path instead, once it is ready for it.
+  pendingOpen = fileFromArgv(process.argv) || pendingOpen;
   if (IS_DEV) mainWindow.webContents.openDevTools({ mode: 'detach' });
 
   // Keep external links out of the app shell.
@@ -123,6 +138,12 @@ function registerIpc() {
   ipcMain.handle('app:info', () => systemInfo());
   ipcMain.handle('app:recommendVariant', () => requirements.recommendVariant());
   ipcMain.handle('app:requirements', () => requirements.check());
+
+  ipcMain.handle('app:pendingOpen', () => {
+    const target = pendingOpen;
+    pendingOpen = null;
+    return target;
+  });
 
   // One call installs every missing requirement; progress arrives tagged with the
   // requirement id so the setup list can drive a bar per row.
@@ -312,7 +333,10 @@ function registerIpc() {
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
-  app.on('second-instance', () => {
+  app.on('second-instance', (_event, argv) => {
+    // A second launch acts as "open with": hand the file to the running window.
+    const target = fileFromArgv(argv);
+    if (target) send('app:openFile', target);
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();

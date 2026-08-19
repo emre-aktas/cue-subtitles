@@ -1352,6 +1352,11 @@ async function boot() {
   });
 
   window.api.onJobEvent(handleJobEvent);
+  // A later launch with --open pushes here; the initial one is pulled below.
+  window.api.onOpenFile((filePath) => setFile(filePath));
+
+  const pending = await window.api.getPendingOpen();
+  if (pending) await setFile(pending);
 
   // Land on Setup when the app cannot run yet.
   if (!state.requirements?.ready) showTab('setup');

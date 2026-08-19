@@ -12,6 +12,8 @@ npm install
 npm start
 ```
 
+![Cue after a run: subtitle cues with per-cue duration, reading speed and confidence](docs/screenshot.png)
+
 ---
 
 ## What it actually does
