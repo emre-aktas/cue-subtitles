@@ -4,7 +4,6 @@ const { app, BrowserWindow, ipcMain, dialog, shell, Menu } = require('electron')
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
-const { execFile } = require('node:child_process');
 const { pathToFileURL } = require('node:url');
 
 const config = require('./lib/config');
